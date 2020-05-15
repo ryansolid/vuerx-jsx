@@ -26,7 +26,7 @@ And include 'babel-plugin-jsx-dom-expressions' in your babelrc, webpack babel lo
 
 ## Example
 
-[Vue Counter(Functions)]() Coming Soon
+[Vue Counter](https://codesandbox.io/s/vue-jsx-counter-nbqbj?file=/index.js)
 
 ## API
 
