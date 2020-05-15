@@ -1,7 +1,7 @@
 {
   "name": "vuerx-jsx",
   "description": "Vue Reactivity with a Fine-Grained Renderer",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "author": "Ryan Carniato",
   "license": "MIT",
   "repository": {
