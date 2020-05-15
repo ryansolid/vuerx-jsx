@@ -7,7 +7,7 @@ It accomplishes this with using [Babel Plugin JSX DOM Expressions](https://githu
 To use call render:
 
 ```js
-import { render } from 'mobx-jsx';
+import { render } from 'vuerx-jsx';
 
 render(App, document.getElementById('main'));
 ```
