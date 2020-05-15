@@ -1,0 +1,4 @@
+src/
+types/tsconfig.tsbuildinfo
+*.config.js
+tsconfig.json
