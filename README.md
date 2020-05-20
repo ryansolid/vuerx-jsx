@@ -30,7 +30,7 @@ And include 'babel-plugin-jsx-dom-expressions' in your babelrc, webpack babel lo
 
 ## API
 
-VueRX JSX works both with function and class components(extend Component from this library). It also ships a specialize map function for optimal list rendering that takes an array as it's first argument.
+VueRX JSX works both with function components. It also ships a specialize map function for optimal list rendering that takes an array as it's first argument.
 
 ```jsx
 const list = ref(["Alpha", "Beta", "Gamma"]);
