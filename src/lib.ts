@@ -1,4 +1,11 @@
-import { effect as vEffect, computed, stop, ref, pauseTracking, resetTracking } from "@vue/reactivity";
+import {
+  effect as vEffect,
+  computed,
+  stop,
+  ref,
+  pauseTracking,
+  resetTracking
+} from "@vue/reactivity";
 
 type ContextOwner = {
   disposables: any[];
@@ -15,7 +22,7 @@ let globalContext: ContextOwner | null = null;
 
 export function untracked(fn: () => any) {
   pauseTracking();
-  const v = fn()
+  const v = fn();
   resetTracking();
   return v;
 }
@@ -62,14 +69,13 @@ export function effect<T>(fn: (prev?: T) => T) {
 }
 
 // only updates when boolean expression changes
-export function memo<T>(fn: () => T, equal: boolean) {
-  if (typeof fn !== "function") return fn;
+export function memo<T>(fn: () => T, equal?: boolean): () => T {
   const o = ref(untracked(fn));
   effect(prev => {
     const res = fn();
     (!equal || prev !== res) && (o.value = res);
     return res;
-  })
+  });
   return () => o.value;
 }
 
@@ -86,7 +92,7 @@ function dynamicProperty(props: any, key: string) {
     get() {
       return src();
     },
-    enumerable: true,
+    enumerable: true
   });
 }
 
@@ -96,10 +102,10 @@ export function createComponent<T>(
   dynamicKeys?: (keyof T)[]
 ): JSX.Element {
   if (dynamicKeys) {
-    for (let i = 0; i < dynamicKeys.length; i++)
-      dynamicProperty(props, dynamicKeys[i] as string);
+    for (let i = 0; i < dynamicKeys.length; i++) dynamicProperty(props, dynamicKeys[i] as string);
   }
-  return untracked(() => Comp(props as T));
+  const c: JSX.Element = untracked(() => Comp(props as T));
+  return typeof c === "function" ? memo(c) : c;
 }
 
 // dynamic import to support code splitting
@@ -107,10 +113,8 @@ export function lazy<T extends Function>(fn: () => Promise<{ default: T }>) {
   return (props: object) => {
     let Comp: T;
     const result = ref();
-    fn().then(component => result.value = component.default);
-    const rendered = computed(
-      () => (Comp = result.value) && untracked(() => Comp(props))
-    );
+    fn().then(component => (result.value = component.default));
+    const rendered = computed(() => (Comp = result.value) && untracked(() => Comp(props)));
     return () => rendered.value;
   };
 }
@@ -127,25 +131,21 @@ export function useContext(context: Context) {
 
 function lookup(owner: ContextOwner | null, key: symbol | string): any {
   return (
-    owner &&
-    ((owner.context && owner.context[key]) ||
-      (owner.owner && lookup(owner.owner, key)))
+    owner && ((owner.context && owner.context[key]) || (owner.owner && lookup(owner.owner, key)))
   );
 }
 
 function resolveChildren(children: any): any {
   if (typeof children === "function") {
     const c = ref();
-    effect(() => c.value = children());
+    effect(() => (c.value = children()));
     return () => c.value;
   }
   if (Array.isArray(children)) {
     const results: any[] = [];
     for (let i = 0; i < children.length; i++) {
       let result = resolveChildren(children[i]);
-      Array.isArray(result)
-        ? results.push.apply(results, result)
-        : results.push(result);
+      Array.isArray(result) ? results.push.apply(results, result) : results.push(result);
     }
     return results;
   }
@@ -164,10 +164,7 @@ function createProvider(id: symbol) {
 }
 
 // Modified version of mapSample from S-array[https://github.com/adamhaile/S-array] by Adam Haile
-export function map<T, U>(
-  list: () => T[],
-  mapFn: (v: T, i: number) => U
-): () => U[] {
+export function map<T, U>(list: () => T[], mapFn: (v: T, i: number) => U): () => U[] {
   let items = [] as T[],
     mapped = [] as U[],
     disposers = [] as (() => void)[],
@@ -289,4 +286,4 @@ export function map<T, U>(
       return mapFn(newItems[j], j);
     }
   };
-};
+}
