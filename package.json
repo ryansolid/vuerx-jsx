@@ -1,7 +1,7 @@
 {
   "name": "vuerx-jsx",
   "description": "Vue Reactivity with a Fine-Grained Renderer",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "author": "Ryan Carniato",
   "license": "MIT",
   "repository": {
@@ -16,17 +16,17 @@
     "prepublishOnly": "npm run build"
   },
   "devDependencies": {
-    "@babel/core": "7.10.5",
+    "@babel/core": "7.11.5",
     "@babel/preset-typescript": "7.10.4",
-    "dom-expressions": "0.19.10",
-    "hyper-dom-expressions": "0.19.10",
-    "lit-dom-expressions": "0.19.10",
-    "@vue/reactivity": "3.0.0-rc.2",
+    "dom-expressions": "0.20.0",
+    "hyper-dom-expressions": "0.20.0",
+    "lit-dom-expressions": "0.20.0",
+    "@vue/reactivity": "3.0.0-rc.9",
     "ncp": "2.0.0",
-    "rollup": "^2.22.1",
-    "@rollup/plugin-babel": "5.1.0",
-    "@rollup/plugin-node-resolve": "8.4.0",
-    "typescript": "3.9.7"
+    "rollup": "^2.26.9",
+    "@rollup/plugin-babel": "5.2.0",
+    "@rollup/plugin-node-resolve": "9.0.0",
+    "typescript": "4.0.2"
   },
   "peerDependencies": {
     "@vue/reactivity": "*"

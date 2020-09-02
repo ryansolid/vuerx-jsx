@@ -50,22 +50,23 @@ export function cleanup(fn: () => void) {
 }
 
 export function effect<T>(fn: (prev?: T) => T, current?: T) {
-  let d: any[];
   const context = {
-      disposables: d = [],
+      disposables: [] as (() => void)[],
       owner: globalContext
     },
-    c = vEffect(() => {
+    cleanupFn = (final: boolean) => {
+      const d = context.disposables;
+      context.disposables = [];
       for (let k = 0, len = d.length; k < len; k++) d[k]();
-      d = [];
+      final && stop(c);
+    },
+    c = vEffect(() => {
+      cleanupFn(false);
       globalContext = context;
       current = fn(current);
       globalContext = globalContext.owner;
     });
-  cleanup(() => {
-    for (let k = 0, len = d.length; k < len; k++) d[k]();
-    stop(c);
-  });
+  cleanup(() => cleanupFn(true));
 }
 
 // only updates when boolean expression changes
@@ -81,31 +82,16 @@ export function memo<T>(fn: () => T, equal?: boolean): () => T {
 
 type PropsWithChildren<P> = P & { children?: JSX.Element };
 export type Component<P = {}> = (props: PropsWithChildren<P>) => JSX.Element;
+export type ComponentProps<
+  T extends keyof JSX.IntrinsicElements | Component<any>
+> = T extends Component<infer P>
+  ? P
+  : T extends keyof JSX.IntrinsicElements
+  ? JSX.IntrinsicElements[T]
+  : {};
 
-type PossiblyWrapped<T> = {
-  [P in keyof T]: T[P] | (() => T[P]);
-};
-
-function dynamicProperty(props: any, key: string) {
-  const src = props[key];
-  Object.defineProperty(props, key, {
-    get() {
-      return src();
-    },
-    enumerable: true
-  });
-}
-
-export function createComponent<T>(
-  Comp: Component<T>,
-  props: PossiblyWrapped<T>,
-  dynamicKeys?: (keyof T)[]
-): JSX.Element {
-  if (dynamicKeys) {
-    for (let i = 0; i < dynamicKeys.length; i++) dynamicProperty(props, dynamicKeys[i] as string);
-  }
-  const c: JSX.Element = untracked(() => Comp(props as T));
-  return typeof c === "function" ? memo(c) : c;
+export function createComponent<T>(Comp: Component<T>, props: T): JSX.Element {
+  return untracked(() => Comp(props));
 }
 
 // dynamic import to support code splitting
