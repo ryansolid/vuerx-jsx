@@ -4,6 +4,8 @@ This library is a demonstration of how Vue's Reactivity system can be leveraged 
 
 It accomplishes this with using [Babel Plugin JSX DOM Expressions](https://github.com/ryansolid/dom-expressions). It compiles JSX to DOM statements and wraps expressions in functions that can be called by the library of choice. In this case `effect` wraps these expressions ensuring the view stays up to date. Unlike Virtual DOM only the changed nodes are affected and the whole tree is not re-rendered over and over. Unlike even Vue 3 there is no hard tie to Components which should allow this approach to significantly exceed its performance.
 
+See it as a top performer on the [JS Framework Benchmark](https://krausest.github.io/js-framework-benchmark/current.html).
+
 To use call render:
 
 ```js
