@@ -1,7 +1,5 @@
-export { root, cleanup, lazy, createContext, useContext, map, untracked } from "./lib";
+export { root, cleanup, createSelector, lazy, createContext, useContext, map, untracked } from "./lib";
 export type { Context, Component, ComponentProps } from "./lib";
-export * from "./runtime";
+export * from "./client";
 
-import "./jsx"
-
-
+export type { JSX } from "./jsx"

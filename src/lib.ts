@@ -4,8 +4,10 @@ import {
   stop,
   ref,
   pauseTracking,
-  resetTracking
+  resetTracking,
+  Ref
 } from "@vue/reactivity";
+import type { JSX } from "./jsx";
 
 type ContextOwner = {
   disposables: any[];
@@ -30,7 +32,7 @@ export function untracked(fn: () => any) {
 export function root<T>(fn: (dispose: () => void) => T) {
   let d: any[], ret: T;
   globalContext = {
-    disposables: d = [],
+    disposables: (d = []),
     owner: globalContext
   };
   ret = untracked(() =>
@@ -80,6 +82,34 @@ export function memo<T>(fn: () => T, equal?: boolean): () => T {
   return () => o.value;
 }
 
+export function createSelector<T, U extends T>(
+  source: () => T,
+  fn: (a: U, b: T) => boolean = (a, b) => a === b
+){
+  let subs = new Map();
+  let v: T;
+  effect((p?: U) => {
+    v = source();
+    const keys = [...subs.keys()];
+    for (let i = 0, len = keys.length; i < len; i++) {
+      const key = keys[i];
+      if (fn(key, v) || p !== undefined && fn(key, p)) {
+        const o = subs.get(key);
+        o.value = null;
+      }
+    }
+    return v as U;
+  });
+  return (key: U) => {
+    let l: Ref<U | undefined> & { _count?: number };
+    if (!(l = subs.get(key))) subs.set(key, l = ref<U>());
+    l.value;
+    l._count ? (l._count++) : (l._count = 1);
+    cleanup(() => l._count! > 1 ? l._count!-- : subs.delete(key))
+    return fn(key, v);
+  };
+}
+
 type PropsWithChildren<P> = P & { children?: JSX.Element };
 export type Component<P = {}> = (props: PropsWithChildren<P>) => JSX.Element;
 export type ComponentProps<
@@ -103,22 +133,6 @@ export function lazy<T extends Function>(fn: () => Promise<{ default: T }>) {
     const rendered = computed(() => (Comp = result.value) && untracked(() => Comp(props)));
     return () => rendered.value;
   };
-}
-
-export function assignProps<T, U>(target: T, source: U): T & U;
-export function assignProps<T, U, V>(target: T, source1: U, source2: V): T & U & V;
-export function assignProps<T, U, V, W>(
-  target: T,
-  source1: U,
-  source2: V,
-  source3: W
-): T & U & V & W;
-export function assignProps(target: any, ...sources: any): any {
-  for (let i = 0; i < sources.length; i++) {
-    const descriptors = Object.getOwnPropertyDescriptors(sources[i]);
-    Object.defineProperties(target, descriptors);
-  }
-  return target;
 }
 
 export function splitProps<T extends object, K1 extends keyof T>(

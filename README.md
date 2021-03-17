@@ -20,6 +20,12 @@ And include 'babel-plugin-jsx-dom-expressions' in your babelrc, webpack babel lo
 "plugins": [["jsx-dom-expressions", {moduleName: 'vuerx-jsx'}]]
 ```
 
+For TS JSX types add to your `tsconfig.json`:
+```js
+"jsx": "preserve",
+"jsxImportSource": "vuerx-jsx" 
+```
+
 ## Installation
 
 ```sh
