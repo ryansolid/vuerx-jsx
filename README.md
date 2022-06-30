@@ -38,7 +38,7 @@ For TS JSX types add to your `tsconfig.json`:
 
 ## API
 
-VueRX JSX works both with function components. It also ships a specialize map function for optimal list rendering that takes an array as it's first argument.
+VueRX JSX works with function components. It also ships a specialize map function for optimal list rendering that takes an array as it's first argument.
 
 ```jsx
 const list = ref(["Alpha", "Beta", "Gamma"]);
