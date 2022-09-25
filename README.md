@@ -44,7 +44,7 @@ VueRX JSX works with function components. It also ships a specialize map functio
 const list = ref(["Alpha", "Beta", "Gamma"]);
 
 <ul>{
-  map(() => ref.value, item => <li>{item}</li>)
+  map(() => list.value, item => <li>{item}</li>)
 }</ul>
 ```
 
