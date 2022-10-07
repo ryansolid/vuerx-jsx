@@ -1,4 +1,4 @@
-export { root, cleanup, createSelector, lazy, createContext, useContext, map, untracked } from "./lib";
+export { root, cleanup, createSelector, lazy, createContext, useContext, map, untrack } from "./lib";
 export type { Context, Component, ComponentProps } from "./lib";
 export * from "./client";
 

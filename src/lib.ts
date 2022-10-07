@@ -2,10 +2,10 @@ import {
   effect as vEffect,
   computed,
   stop,
-  ref,
+  shallowRef,
   pauseTracking,
   resetTracking,
-  Ref
+  ShallowRef
 } from "@vue/reactivity";
 import type { JSX } from "./jsx";
 
@@ -22,7 +22,7 @@ export interface Context {
 
 let globalContext: ContextOwner | null = null;
 
-export function untracked(fn: () => any) {
+export function untrack(fn: () => any) {
   pauseTracking();
   const v = fn();
   resetTracking();
@@ -35,7 +35,7 @@ export function root<T>(fn: (dispose: () => void) => T) {
     disposables: (d = []),
     owner: globalContext
   };
-  ret = untracked(() =>
+  ret = untrack(() =>
     fn(() => {
       let k, len: number;
       for (k = 0, len = d.length; k < len; k++) d[k]();
@@ -73,7 +73,7 @@ export function effect<T>(fn: (prev?: T) => T, current?: T) {
 
 // only updates when boolean expression changes
 export function memo<T>(fn: () => T, equal?: boolean): () => T {
-  const o = ref(untracked(fn));
+  const o = shallowRef(untrack(fn));
   effect(prev => {
     const res = fn();
     (!equal || prev !== res) && (o.value = res);
@@ -85,7 +85,7 @@ export function memo<T>(fn: () => T, equal?: boolean): () => T {
 export function createSelector<T, U extends T>(
   source: () => T,
   fn: (a: U, b: T) => boolean = (a, b) => a === b
-){
+) {
   let subs = new Map();
   let v: T;
   effect((p?: U) => {
@@ -93,7 +93,7 @@ export function createSelector<T, U extends T>(
     const keys = [...subs.keys()];
     for (let i = 0, len = keys.length; i < len; i++) {
       const key = keys[i];
-      if (fn(key, v) || p !== undefined && fn(key, p)) {
+      if (fn(key, v) || (p !== undefined && fn(key, p))) {
         const o = subs.get(key);
         o.value = null;
       }
@@ -101,36 +101,38 @@ export function createSelector<T, U extends T>(
     return v as U;
   });
   return (key: U) => {
-    let l: Ref<U | undefined> & { _count?: number };
-    if (!(l = subs.get(key))) subs.set(key, l = ref<U>());
+    let l: ShallowRef<U | undefined> & { _count?: number };
+    if (!(l = subs.get(key))) subs.set(key, (l = shallowRef<U>()));
     l.value;
-    l._count ? (l._count++) : (l._count = 1);
-    cleanup(() => l._count! > 1 ? l._count!-- : subs.delete(key))
+    l._count ? l._count++ : (l._count = 1);
+    cleanup(() => (l._count! > 1 ? l._count!-- : subs.delete(key)));
     return fn(key, v);
   };
 }
 
 type PropsWithChildren<P> = P & { children?: JSX.Element };
 export type Component<P = {}> = (props: PropsWithChildren<P>) => JSX.Element;
-export type ComponentProps<
-  T extends keyof JSX.IntrinsicElements | Component<any>
-> = T extends Component<infer P>
-  ? P
-  : T extends keyof JSX.IntrinsicElements
-  ? JSX.IntrinsicElements[T]
-  : {};
+export type ComponentProps<T extends keyof JSX.IntrinsicElements | Component<any>> =
+  T extends Component<infer P>
+    ? P
+    : T extends keyof JSX.IntrinsicElements
+    ? JSX.IntrinsicElements[T]
+    : {};
 
-export function createComponent<T>(Comp: Component<T>, props: T): JSX.Element {
-  return untracked(() => Comp(props));
+export function createComponent<T extends { children?: JSX.Element }>(
+  Comp: Component<T>,
+  props: T
+): JSX.Element {
+  return untrack(() => Comp(props));
 }
 
 // dynamic import to support code splitting
 export function lazy<T extends Function>(fn: () => Promise<{ default: T }>) {
   return (props: object) => {
     let Comp: T;
-    const result = ref();
+    const result = shallowRef();
     fn().then(component => (result.value = component.default));
-    const rendered = computed(() => (Comp = result.value) && untracked(() => Comp(props)));
+    const rendered = computed(() => (Comp = result.value) && untrack(() => Comp(props)));
     return () => rendered.value;
   };
 }
@@ -214,7 +216,7 @@ function lookup(owner: ContextOwner | null, key: symbol | string): any {
 
 function resolveChildren(children: any): any {
   if (typeof children === "function") {
-    const c = ref();
+    const c = shallowRef();
     effect(() => (c.value = children()));
     return () => c.value;
   }
@@ -231,10 +233,10 @@ function resolveChildren(children: any): any {
 
 function createProvider(id: symbol) {
   return function provider(props: { value: unknown; children: any }) {
-    let rendered = ref();
+    let rendered = shallowRef();
     effect(() => {
       globalContext!.context = { [id]: props.value };
-      rendered.value = untracked(() => resolveChildren(props.children));
+      rendered.value = untrack(() => resolveChildren(props.children));
     });
     return () => rendered.value;
   };
@@ -253,7 +255,7 @@ export function map<T, U>(list: () => T[], mapFn: (v: T, i: number) => U): () =>
     let newItems = list() || [],
       i: number,
       j: number;
-    return untracked(() => {
+    return untrack(() => {
       let newLen = newItems.length,
         newIndices: Map<T, number>,
         newIndicesNext: number[],
